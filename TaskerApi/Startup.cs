@@ -37,15 +37,7 @@ namespace TaskerApi
                 app.UseDeveloperExceptionPage();
             }
             app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
-            app.UseMvc();            
-
-            //BsonClassMap.RegisterClassMap<TaskItem>(cm =>
-            //{
-            //    cm.MapMember(c => c._id);
-            //    cm.MapMember(c => c.RegisterDate);
-            //    cm.MapMember(c => c.Text);
-            //    cm.MapMember(c => c.Title);
-            //});
+            app.UseMvc();
         }
     }
 }
