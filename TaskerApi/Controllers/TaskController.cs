@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
-using MongoDB.Driver;
 using TaskerApi.dto;
 using TaskerApi.Model;
 
@@ -24,7 +20,6 @@ namespace TaskerApi.Controllers
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] NewTaskDTO dto)
         {
-
             var task = new TaskItem
             {
                 RegisterDate = DateTime.Now,
