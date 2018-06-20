@@ -14,6 +14,13 @@ namespace TaskerApi.Controllers
     [Route("api/[controller]")]
     public class TaskController : Controller
     {
+        private readonly ITaskItemRepository _taskItemRepository;
+
+        public TaskController(ITaskItemRepository taskItemRepository)
+        {
+            _taskItemRepository = taskItemRepository;
+        }
+
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] NewTaskDTO dto)
         {
@@ -23,27 +30,17 @@ namespace TaskerApi.Controllers
                 RegisterDate = DateTime.Now,
                 Text = dto.Text,
                 Title = dto.Title
-            };            
+            };
 
-            var client = new MongoClient("mongodb://localhost:32768");
-            var database = client.GetDatabase("tasker");
+            await _taskItemRepository.AddAsync(task);
 
-            var collection = database.GetCollection<TaskItem>("taskitem");
-
-           await collection.InsertOneAsync(task);            
-
-            return CreatedAtAction(nameof(Get), new { id = "asd" }, dto);
+            return CreatedAtAction(nameof(Get), new { id = task.Id }, dto);
         }
 
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var client = new MongoClient("mongodb://localhost:32768");
-            var database = client.GetDatabase("tasker");
-
-            var collection = database.GetCollection<TaskItem>("taskitem");
-
-            var documents = await collection.Find(new BsonDocument()).ToListAsync();
+            var documents = await _taskItemRepository.GetAll();
 
             var ret = new List<TaskDTO>();
 
@@ -62,18 +59,19 @@ namespace TaskerApi.Controllers
         }
 
         [HttpGet("{id}")]
-        public IActionResult Get(string id)
+        public async Task<IActionResult> Get(string id)
         {
-            var itens = new List<TaskItem>
+            TaskItem item = await _taskItemRepository.Get(id);
+
+            var dto = new TaskDTO
             {
-                new TaskItem
-                {
-                    RegisterDate = DateTime.Now,
-                    Text = "Example Test"
-                }
+                Id = item.Id,
+                RegisterDate = item.RegisterDate,
+                Text = item.Text,
+                Title = item.Title
             };
 
-            return this.Json(itens);
+            return Json(dto);
         }
     }
 }

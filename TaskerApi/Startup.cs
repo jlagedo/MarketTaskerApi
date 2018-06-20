@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson.Serialization;
+using TaskerApi.Cross;
 using TaskerApi.Model;
 
 namespace TaskerApi
@@ -27,6 +28,13 @@ namespace TaskerApi
         {
             services.AddCors();
             services.AddMvc();
+            services.Configure<Settings>(o => {
+                o.ConnectionString = Configuration.GetSection("MongoConnection:ConnectionString").Value;
+                o.Database = Configuration.GetSection("MongoConnection:Database").Value;
+            });
+
+            services.AddSingleton<MongoContext>();
+            services.AddTransient<ITaskItemRepository, TaskItemRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
