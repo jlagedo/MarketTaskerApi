@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using TaskerApi.dto;
@@ -8,6 +9,7 @@ using TaskerApi.Model;
 namespace TaskerApi.Controllers
 {
     [Route("api/[controller]")]
+    [ApiController]
     public class TaskController : Controller
     {
         private readonly ITaskItemRepository _taskItemRepository;
@@ -17,29 +19,10 @@ namespace TaskerApi.Controllers
             _taskItemRepository = taskItemRepository;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="dto"></param>
-        /// <returns></returns>
-        /// <remarks>
-        /// testing model validation https://tahirnaushad.com/2017/08/22/asp-net-core-2-0-mvc-model-validation/
-        /// maybe
-        /// http://www.talkingdotnet.com/validate-model-state-automatically-asp-net-core-2-0/
-        /// 
-        /// 2.1 upgrade ?
-        /// https://blogs.msdn.microsoft.com/webdev/2018/02/02/asp-net-core-2-1-roadmap/
-        /// [ApiController]
-        /// </remarks>
         [HttpPost]
-        [ProducesResponseType(201, Type = typeof(TaskDTO))]
-        public async Task<IActionResult> Post([FromBody] NewTaskDTO dto)
+        [ProducesResponseType(201)]
+        public async Task<ActionResult<TaskDTO>> Post(NewTaskDTO dto)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
             var task = new TaskItem
             {
                 RegisterDate = DateTime.Now,
@@ -49,48 +32,54 @@ namespace TaskerApi.Controllers
 
             await _taskItemRepository.AddAsync(task);
 
-            return CreatedAtAction(nameof(Get), new { id = task.Id }, dto);
+            var taskDTO = new TaskDTO
+            {
+                Id = task.Id,
+                RegisterDate = task.RegisterDate,
+                Text = task.Text,
+                Title = task.Title
+            };
+
+            return CreatedAtAction(nameof(Get), new { id = task.Id }, taskDTO);
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IEnumerable<TaskDTO>> Index()
         {
-            var documents = await _taskItemRepository.GetAll();
+            var tasks = await _taskItemRepository.GetAll();
 
-            var ret = new List<TaskDTO>();
-
-            foreach (var item in documents)
+            var returnList = tasks.Select(t => new TaskDTO
             {
-                ret.Add(new TaskDTO
-                {
-                    Id = item.Id,
-                    RegisterDate = item.RegisterDate,
-                    Text = item.Text,
-                    Title = item.Title
-                });
-            }
+                Id = t.Id,
+                RegisterDate = t.RegisterDate,
+                Text = t.Text,
+                Title = t.Title
+            });
 
-            return this.Json(ret);
+            return returnList;
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> Get(string id)
+        public async Task<ActionResult<TaskDTO>> Get(string id)
         {
-            TaskItem item = await _taskItemRepository.Get(id);
+            TaskItem task = await _taskItemRepository.Get(id);
 
-            var dto = new TaskDTO
+            if (task == null)
+                return NotFound();
+
+            var taskDTO = new TaskDTO
             {
-                Id = item.Id,
-                RegisterDate = item.RegisterDate,
-                Text = item.Text,
-                Title = item.Title
+                Id = task.Id,
+                RegisterDate = task.RegisterDate,
+                Text = task.Text,
+                Title = task.Title
             };
 
-            return Json(dto);
+            return taskDTO;
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Remove(string id)
+        public async Task<ActionResult> Remove(string id)
         {
             var isDeleted = await _taskItemRepository.Delete(id);
 
@@ -99,8 +88,5 @@ namespace TaskerApi.Controllers
             else
                 return NotFound();
         }
-
-
-
     }
 }

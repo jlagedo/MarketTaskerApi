@@ -9,10 +9,10 @@ namespace TaskerApi.dto
     public class NewTaskDTO
     {
         [Required]
-        [MinLength(3)]
+        [MaxLength(40)]
         public string Title { get; set; }
         [Required]
-        [MinLength(3)]
+        [MaxLength(255)]
         public string Text { get; set; }
     }
 }

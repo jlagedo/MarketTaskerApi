@@ -22,7 +22,8 @@ namespace TaskerApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc()
-                .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
+                .AddJsonOptions( options => options.SerializerSettings.Formatting = Newtonsoft.Json.Formatting.Indented);
 
             services.Configure<Settings>(o => {
                 o.ConnectionString = Configuration.GetSection("MongoConnection:ConnectionString").Value;
@@ -43,8 +44,8 @@ namespace TaskerApi
             else
             {
                 app.UseHsts();
+                app.UseHttpsRedirection();
             }
-            app.UseHttpsRedirection();
 
             app.UseMvc();
         }
