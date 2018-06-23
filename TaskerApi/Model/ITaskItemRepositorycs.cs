@@ -8,5 +8,6 @@ namespace TaskerApi.Model
         Task<List<TaskItem>> GetAll();
         Task AddAsync(TaskItem task);
         Task<TaskItem> Get(string id);
+        Task<bool> Delete(string id);
     }
 }

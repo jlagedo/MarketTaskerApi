@@ -17,9 +17,29 @@ namespace TaskerApi.Controllers
             _taskItemRepository = taskItemRepository;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dto"></param>
+        /// <returns></returns>
+        /// <remarks>
+        /// testing model validation https://tahirnaushad.com/2017/08/22/asp-net-core-2-0-mvc-model-validation/
+        /// maybe
+        /// http://www.talkingdotnet.com/validate-model-state-automatically-asp-net-core-2-0/
+        /// 
+        /// 2.1 upgrade ?
+        /// https://blogs.msdn.microsoft.com/webdev/2018/02/02/asp-net-core-2-1-roadmap/
+        /// [ApiController]
+        /// </remarks>
         [HttpPost]
+        [ProducesResponseType(201, Type = typeof(TaskDTO))]
         public async Task<IActionResult> Post([FromBody] NewTaskDTO dto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var task = new TaskItem
             {
                 RegisterDate = DateTime.Now,
@@ -68,5 +88,19 @@ namespace TaskerApi.Controllers
 
             return Json(dto);
         }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Remove(string id)
+        {
+            var isDeleted = await _taskItemRepository.Delete(id);
+
+            if (isDeleted)
+                return Ok();
+            else
+                return NotFound();
+        }
+
+
+
     }
 }

@@ -28,5 +28,11 @@ namespace TaskerApi.Cross
         {
             return await context.Tasks.Find(new BsonDocument()).ToListAsync();
         }
+
+        public async Task<bool> Delete(string id)
+        {
+            var result =  await context.Tasks.DeleteOneAsync(d => d.Id == id);
+            return result.IsAcknowledged && result.DeletedCount > 0;
+        }
     }
 }
