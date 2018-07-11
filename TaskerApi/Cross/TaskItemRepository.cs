@@ -34,5 +34,11 @@ namespace TaskerApi.Cross
             var result =  await context.Tasks.DeleteOneAsync(d => d.Id == id);
             return result.IsAcknowledged && result.DeletedCount > 0;
         }
+
+        public async Task<List<TaskItem>> GetAllFromUserAsync(string userid)
+        {
+            var list = await context.Tasks.FindAsync(t => t.UserId == userid);
+            return await list.ToListAsync();
+        }
     }
 }

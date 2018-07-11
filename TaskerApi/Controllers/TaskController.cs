@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TaskerApi.dto;
 using TaskerApi.Model;
@@ -10,8 +12,11 @@ namespace TaskerApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class TaskController : Controller
     {
+        private string Userid => "3Bob3RvLmpwZyIsImdpdmVuX25hbWUiOiJKb8OjbyBBbWFybyIsImZh";
+
         private readonly ITaskItemRepository _taskItemRepository;
 
         public TaskController(ITaskItemRepository taskItemRepository)
@@ -19,6 +24,7 @@ namespace TaskerApi.Controllers
             _taskItemRepository = taskItemRepository;
         }
 
+        [Authorize]
         [HttpPost]
         [ProducesResponseType(201)]
         public async Task<ActionResult<TaskDTO>> Post(NewTaskDTO dto)
@@ -27,7 +33,8 @@ namespace TaskerApi.Controllers
             {
                 RegisterDate = DateTime.Now,
                 Text = dto.Text,
-                Title = dto.Title
+                Title = dto.Title,
+                UserId = Userid
             };
 
             await _taskItemRepository.AddAsync(task);
@@ -40,13 +47,15 @@ namespace TaskerApi.Controllers
                 Title = task.Title
             };
 
-            return CreatedAtAction(nameof(Get), new { id = task.Id }, taskDTO);
+            return CreatedAtAction(nameof(Get), new {id = task.Id}, taskDTO);
         }
 
         [HttpGet]
         public async Task<IEnumerable<TaskDTO>> Index()
         {
-            var tasks = await _taskItemRepository.GetAll();
+
+
+            var tasks = await _taskItemRepository.GetAllFromUserAsync(Userid);
 
             var returnList = tasks.Select(t => new TaskDTO
             {
@@ -67,15 +76,14 @@ namespace TaskerApi.Controllers
             if (task == null)
                 return NotFound();
 
-            var taskDTO = new TaskDTO
+
+            return new TaskDTO
             {
                 Id = task.Id,
                 RegisterDate = task.RegisterDate,
                 Text = task.Text,
                 Title = task.Title
             };
-
-            return taskDTO;
         }
 
         [HttpDelete("{id}")]
@@ -85,8 +93,7 @@ namespace TaskerApi.Controllers
 
             if (isDeleted)
                 return Ok();
-            else
-                return NotFound();
+            return NotFound();
         }
     }
 }
